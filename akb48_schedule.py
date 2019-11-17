@@ -85,8 +85,8 @@ class Akb48Schedule:
     def __init__(self):
 
         self.db = Akb48Db()
-        self.start_year = 2016
-        self.start_month = 8
+        self.start_year = 2019
+        self.start_month = 10
         """
         self.api_endpoint = 'https://www.akb48.co.jp/public/api/schedule/calendar/'
         # json_data = request.data
