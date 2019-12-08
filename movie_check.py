@@ -32,14 +32,15 @@ class MovieCheck:
         except:
             print('Error')
 
-        self.is_check = True
-        # self.is_check = False
+        # self.is_check = True
+        self.is_check = False
 
     def __get_dest_name(self, extract_name: str = ''):
         # ファイル存在チェック
         if not os.path.isfile(os.path.join(self.path, extract_name)):
             raise FileNotError(extract_name + 'のファイルが存在しません')
 
+        # self.re_file_prefix = '[A-Z]{3}[0-9]{2} [0-3][0-9][0-1][0-9][0-3][0-9]'
         m_pre = re.search(self.re_file_prefix, extract_name)
         is_not_find = True
         err_detail = ''
@@ -52,31 +53,34 @@ class MovieCheck:
             if len(find_list) == 1:
                 is_not_find = False
             elif len(find_list) > 1:
-                m_time = re.search(self.re_time, extract_name)
+                m_time = re.search(self.re_time, extract_name.replace(pre_list[0], '').replace(pre_list[1], ''))
                 if m_time:
-                    find_filter = filter(lambda name: re.search(pre_list[0], name)
-                                         and re.search(pre_list[1], name)
+                    find_filter = filter(lambda name: re.search(pre_list[0], name) and re.search(pre_list[1], name)
                                          and re.search(m_time.group(), name)
                                          , self.target_names)
                     find_list = list(find_filter)
                     if len(find_list) == 1:
                         is_not_find = False
                     else:
-                        err_detail = 'many time error'
+                        err_detail = 'many time[{}] error'.format(m_time.group())
             else:
                 err_detail = 'no match file_prefix'
         else:
             err_detail = 'no match file_prefix'
 
         if is_not_find:
-            raise MatchNotFoundError(extract_name + 'に一致するファイル名がextract_files.txtに存在しませんでした ['
-                                     + m_pre.group() + '] ' + err_detail)
+            if m_pre:
+                raise MatchNotFoundError(extract_name + 'に一致するファイル名がextract_files.txtに存在しませんでした ['
+                                         + m_pre.group() + '] ' + err_detail)
+            else:
+                raise MatchNotFoundError("{} の中にグループ名が無し".format(extract_name))
 
         # print('change 【' + extract_name.replace(m_pre.group(), find_list[0]) + '】 <-- ' + mp4_filename)
         return extract_name.replace(m_pre.group(), find_list[0])
 
     def execute(self):
-        file_list = glob.glob(os.path.join(self.path, '*part1*.rar'))
+        file_list = glob.glob(os.path.join(self.path, '*part1.rar'))
+        file_list.extend(glob.glob(os.path.join(self.path, '*part01.rar')))
         for file in file_list:
             mp4_filename = ''
             try:
@@ -96,12 +100,14 @@ class MovieCheck:
                 dest_filename = self.__get_dest_name(mp4_filename)
             except FileNotError as err:
                 print('FileNot ' + err.message)
+                continue
             except MatchNotFoundError as err:
                 print('MatchNotFound ' + err.message)
+                continue
 
             print('change 【' + dest_filename + '】 <-- ' + mp4_filename)
             file.replace('part1', 'part*')
-            delete_list = glob.glob(file.replace('part1', 'part*'))
+            delete_list = glob.glob(file.replace('part1', 'part*').replace('part01', 'part*'))
             print('  rm ' + str(delete_list))
 
             if not self.is_check:
