@@ -103,7 +103,8 @@ class Akb48File:
 
         self.db = Akb48Db()
 
-        self.dir_list = ['D:\\DATA\\Downloads\\AKB48', 'F:\\AKB48公演']
+        # self.dir_list = ['D:\\DATA\\Downloads\\AKB48', 'F:\\AKB48公演']
+        self.dir_list = ['D:\\DATA\\Downloads\\AKB48']
 
     def execute(self):
 
@@ -113,7 +114,7 @@ class Akb48File:
 
             for file in file_list:
                 file_basename = os.path.basename(file)
-                m_file = re.search('[12][0-9][0-1][0-9][0-3][0-9]', file_basename)
+                m_file = re.search('^[12][0-9][0-1][0-9][0-3][0-9]', file_basename)
                 if m_file:
                     try:
                         the_date = datetime.strptime(m_file.group(), '%y%m%d')
