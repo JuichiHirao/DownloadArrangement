@@ -13,15 +13,7 @@ class Nmb48Schedule:
 
         self.db = Akb48Db()
         # self.db = None
-
-    def __parse_entry_contents(self, entry_content, the_date_str):
-
-        content_list = entry_content.find_all('div')
-        if 'gekijou' not in content_list[0]['class']:
-            return None
-        # print(content_list[0]['class'])
-        # print(entry_content)
-
+    def __get_data(self, content_list):
         is_gekijou = False
         is_gekijou_first = False
         time_str = ''
@@ -53,6 +45,58 @@ class Nmb48Schedule:
             if 'gekijou' in content_class_list:
                 is_gekijou = True
                 is_gekijou_first = True
+
+        return title, member, time_str
+
+    def __get_data_before_20170502(self, content_list):
+        is_gekijou = False
+        is_gekijou_first = False
+        time_str = ''
+        title = ''
+        member = ''
+        koumoku = ''
+        for idx, content in enumerate(content_list):
+            # 2017-05-02 以前の取得方法
+            content_class_list = content['class']
+            # print('class [{}]'.format(content['class']))
+            if 'kaerebalink-box' in content['class']:
+                break
+
+            if is_gekijou:
+                if 'koumoku' in content_class_list or 'syousai' in content_class_list:
+                    if 'koumoku' in content_class_list:
+                        koumoku = content.text
+                    else:
+                        if koumoku == '開演時間':
+                            m_time = re.search('(?P<time_str>[0-2][0-9]:[0-6][0-9])', content.text)
+                            if m_time:
+                                time_str = m_time.group('time_str')
+                        elif koumoku == '出演メンバー':
+                            member = content.text
+                else:
+                    if is_gekijou_first:
+                        title = content.text
+                        is_gekijou_first = False
+                        continue
+                    else:
+                        break
+
+            if 'gekijou' in content_class_list:
+                is_gekijou = True
+                is_gekijou_first = True
+
+        return title, member, time_str
+
+    def __parse_entry_contents(self, entry_content, the_date_str):
+
+        content_list = entry_content.find_all('div')
+        if 'gekijou' not in content_list[0]['class']:
+            return None
+        # print(content_list[0]['class'])
+        # print(entry_content)
+
+        title, member, time_str = self.__get_data(content_list)
+        # title, member, time_str = self.__get_data_before_20170502(content_list)
 
         if len(title) <= 0:
             # print(entry_content)
@@ -112,8 +156,8 @@ class Nmb48Schedule:
 
     def execute(self):
 
-        idx = 328
-        while idx < 329:
+        idx = 0
+        while idx < 20:
             if idx == 0:
                 url = 'http://nmbschedule.blog.fc2.com/'
             else:
