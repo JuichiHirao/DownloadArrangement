@@ -1,10 +1,5 @@
 import re
-import sys
-import requests
-import json
-import mysql.connector
 from datetime import datetime
-import yaml
 import os
 from bs4 import BeautifulSoup
 import urllib.request
@@ -17,7 +12,7 @@ class Ske48Schedule:
     def __init__(self):
 
         self.start_year = 2019
-        self.start_month = 10
+        self.start_month = 12
         self.base_url = 'http://www.ske48.co.jp/schedule/'
         self.detail_other_list = []
         self.detail_none = []
@@ -160,6 +155,11 @@ class Ske48Schedule:
             for month in range(start_month, end_month):
                 print('{}-{:0>2}'.format(year, month))
                 self.get_one_month_no_detail(year, month)
+
+            # for rangeでは、当月は実行されないので、当月のみ指定の場合は↓で実行
+            if self.start_month == start_month and self.start_year == year:
+                print('{}-{:0>2}'.format(year, start_month))
+                self.get_one_month_no_detail(year, start_month)
 
         for detail_other in self.detail_other_list:
             print(detail_other)

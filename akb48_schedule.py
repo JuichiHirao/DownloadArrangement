@@ -1,117 +1,17 @@
 import re
-import sys
 import requests
-import json
-import mysql.connector
+from akb48_db import Akb48Db
+from akb48_data import Akb48Data
 from datetime import datetime
-import yaml
-
-
-class Akb48Data:
-
-    def __init__(self):
-        self.id = -1
-        self.groupName = ''
-        self.title = ''
-        self.member = ''
-        self.theDate = None
-        self.memo = ''
-        self.memo2 = ''
-        self.remark = ''
-        self.filename = ''
-        self.rating1 = 0
-        self.rating2 = 0
-        self.status = ''
-        self.createdAt = None
-        self.updatedAt = None
-
-
-class Akb48Db:
-
-    def __init__(self):
-
-        self.conn = self.__get_conn()
-        self.cursor = self.conn.cursor()
-
-    def __get_conn(self):
-
-        with open('credentials.yml') as file:
-            obj = yaml.load(file)
-            self.user = obj['user']
-            self.password = obj['password']
-            self.hostname = obj['hostname']
-            self.dbname = obj['dbname']
-
-        return mysql.connector.connect(user=self.user, password=self.password,
-                                       host=self.hostname, database=self.dbname)
-
-    def is_exist(self, theDate: datetime=None):
-
-        if theDate is None:
-            return False
-
-        sql = 'SELECT title ' \
-              '  FROM tv.akb48 WHERE the_date = %s '
-
-        self.cursor.execute(sql, (theDate, ))
-
-        rs = self.cursor.fetchall()
-
-        exist = False
-
-        if rs is not None:
-            for row in rs:
-                exist = True
-                break
-
-        return exist
-
-    def export(self, data: Akb48Data = None):
-        sql = 'INSERT INTO tv.akb48 (group_name ' \
-              ', title, member, the_date, status) ' \
-              ' VALUES(%s' \
-              ', %s, %s, %s, %s) '
-
-        self.cursor.execute(sql, (data.groupName
-                                  , data.title, data.member, data.theDate, data.status))
-
-        self.conn.commit()
 
 
 class Akb48Schedule:
 
-    """
-    """
     def __init__(self):
 
         self.db = Akb48Db()
         self.start_year = 2019
-        self.start_month = 10
-        """
-        self.api_endpoint = 'https://www.akb48.co.jp/public/api/schedule/calendar/'
-        # json_data = request.data
-        schedule_date = {"month": "09",
-                         "year": "2019",
-                         "category": "0"}
-        r = requests.post("https://www.akb48.co.jp/public/api/schedule/calendar/", schedule_date)
-
-        data = r.json()
-        # print(data['data']['thismonth'])
-        for thismonth in data['data']['thismonth']:
-            # print(json.dumps(thismonth, indent=4))
-            for one_schedule in data['data']['thismonth'][thismonth]:
-                print(json.dumps(one_schedule, indent=4, ensure_ascii=False))
-                # print(one_schedule['title'])
-                if '公演' in one_schedule['title']:
-                    group = 'AKB48'
-                    date = one_schedule['date']
-                    title = one_schedule['title']
-                    # print(json.dumps(one_schedule, indent=4, ensure_ascii=False))
-                    m_member = re.search('【出演メンバ.*', one_schedule['body'])
-                    if m_member:
-                        member = one_schedule['member']
-                        print(m_member.group())
-        """
+        self.start_month = 12
 
     def parse_json(self, json_data):
 
@@ -133,10 +33,12 @@ class Akb48Schedule:
                     m_member = re.search('【出演メンバ.*', one_schedule['body'])
                     if m_member:
                         data.member = m_member.group()
-                        print('{} {} {}'.format(data.theDate, data.title, data.member))
 
-                    if not self.db.is_exist(data.theDate):
+                    if not self.db.is_exist(data.theDate, data.groupName):
+                        print('{} {} {}'.format(data.theDate, data.title, data.member))
                         self.db.export(data)
+                    else:
+                        print('exist {} {} {}'.format(data.theDate, data.title, data.member))
 
                     data_list.append(data)
 
@@ -152,10 +54,6 @@ class Akb48Schedule:
         r = requests.post("https://www.akb48.co.jp/public/api/schedule/calendar/", schedule_date)
 
         data = r.json()
-        # print(data['data']['thismonth'])
-        # for thismonth in data['data']['thismonth']:
-        #     print(json.dumps(thismonth, indent=4))
-        # for one_schedule in data['data']['thismonth'][thismonth]:
 
         return data
 
@@ -168,6 +66,12 @@ class Akb48Schedule:
             for month in range(start_month, end_month):
                 print('{}-{:0>2}'.format(year, month))
                 json = self.__get_data(year, month)
+                data_list = self.parse_json(json)
+
+            # for rangeでは、当月は実行されないので、当月のみ指定の場合は↓で実行
+            if self.start_month == start_month and self.start_year == year:
+                print('{}-{:0>2}'.format(year, start_month))
+                json = self.__get_data(year, start_month)
                 data_list = self.parse_json(json)
 
         return

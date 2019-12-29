@@ -18,7 +18,7 @@ class Akb48Db:
     def __get_conn(self):
 
         with open('credentials.yml') as file:
-            obj = yaml.load(file)
+            obj = yaml.load(file, Loader=yaml.FullLoader)
             self.user = obj['user']
             self.password = obj['password']
             self.hostname = obj['hostname']
