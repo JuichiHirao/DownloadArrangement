@@ -19,7 +19,12 @@ class MatchNotFoundError(Exception):
 class MovieCheck:
 
     def __init__(self):
-        self.re_file_prefix = '[A-Z]{3}[0-9]{2} [0-3][0-9][0-1][0-9][0-3][0-9]'
+        # m_post_date = re.search('.*Posted by noname on (?P<match_str>[a-zA-Z0-9\s]*) |.*', post_date.text)
+        # self.re_file_prefix = '[A-Z]{3}[0-9]{2} ([0-3][0-9][0-1][0-9][0-3][0-9]|[0-9]{4})'
+        self.re_file_prefix_list = ['(?P<group_name>[A-Z]{3}[0-9]{2}) '
+                                    '(?P<date_str>([0-3][0-9][0-1][0-9][0-3][0-9]|[0-9]{4}))',
+                                    '(?P<date_str>([0-3][0-9][0-1][0-9][0-3][0-9]|[0-9]{4})) '
+                                    '(?P<group_name>[A-Z]{3}[0-9]{2})']
         self.re_time = '1[0-9][03]0'
 
         self.path = 'D:\DATA\Downloads\AKB48'
@@ -32,20 +37,26 @@ class MovieCheck:
         except:
             print('Error')
 
-        # self.is_check = True
-        self.is_check = False
+        self.is_check = True
+        # self.is_check = False
 
     def __get_dest_name(self, extract_name: str = ''):
         # ファイル存在チェック
         if not os.path.isfile(os.path.join(self.path, extract_name)):
             raise FileNotError(extract_name + 'のファイルが存在しません')
 
-        # self.re_file_prefix = '[A-Z]{3}[0-9]{2} [0-3][0-9][0-1][0-9][0-3][0-9]'
-        m_pre = re.search(self.re_file_prefix, extract_name)
+        pre_list = []
+        m_pre = None
+        for re_file_prefix in self.re_file_prefix_list:
+            m_pre = re.search(re_file_prefix, extract_name)
+            if m_pre:
+                pre_list.append(m_pre.group('group_name'))
+                pre_list.append(m_pre.group('date_str'))
+                break
+
         is_not_find = True
         err_detail = ''
-        if m_pre:
-            pre_list = m_pre.group().split(' ')
+        if len(pre_list) > 0:
             find_filter = filter(lambda name: re.search(pre_list[0], name)
                                  and re.search(pre_list[1], name)
                                  , self.target_names)
