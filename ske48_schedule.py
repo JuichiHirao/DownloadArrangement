@@ -11,8 +11,8 @@ class Ske48Schedule:
 
     def __init__(self):
 
-        self.start_year = 2019
-        self.start_month = 12
+        self.start_year = 2020
+        self.start_month = 11
         self.base_url = 'http://www.ske48.co.jp/schedule/'
         self.detail_other_list = []
         self.detail_none = []

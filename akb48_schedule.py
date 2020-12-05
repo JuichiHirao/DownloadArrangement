@@ -10,8 +10,8 @@ class Akb48Schedule:
     def __init__(self):
 
         self.db = Akb48Db()
-        self.start_year = 2019
-        self.start_month = 12
+        self.start_year = 2020
+        self.start_month = 11
 
     def parse_json(self, json_data):
 

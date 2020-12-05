@@ -157,7 +157,7 @@ class Nmb48Schedule:
     def execute(self):
 
         idx = 0
-        while idx < 20:
+        while idx < 60:
             if idx == 0:
                 url = 'http://nmbschedule.blog.fc2.com/'
             else:

@@ -96,6 +96,31 @@ class Akb48Db:
 
         return data_list
 
+    def get_by_filename(self, filename: str = ''):
+
+        if len(filename) <= 0:
+            return False
+
+        sql = 'SELECT id ' \
+              '  , group_name, title, subtitle, member ' \
+              '  , the_date, memo, memo2, remark ' \
+              '  , filename, rating1, rating2, status ' \
+              '  , created_at, updated_at ' \
+              '  FROM tv.akb48 WHERE filename = %s '
+
+        self.cursor.execute(sql, (filename, ))
+
+        rs = self.cursor.fetchall()
+
+        exist = False
+
+        data_list = []
+        if rs is not None:
+            for row in rs:
+                return True
+
+        return exist
+
 
 class Akb48File:
 
@@ -104,7 +129,9 @@ class Akb48File:
         self.db = Akb48Db()
 
         # self.dir_list = ['D:\\DATA\\Downloads\\AKB48', 'F:\\AKB48公演']
-        self.dir_list = ['D:\\DATA\\Downloads\\AKB48']
+        # self.dir_list = ['D:\\DATA\\Downloads\\AKB48']
+        self.dir_list = ['F:\AKB48公演']
+        # self.dir_list = ['G:\AKB48公演2020']
 
     def execute(self):
 
@@ -145,14 +172,38 @@ class Akb48File:
                             match_data.filename = file_basename
                             self.db.update_file_info(match_data)
                             print('updated {} {}'.format(match_data.theDate, file_basename))
-                        else:
-                            print('already updated {} {}'.format(match_data.theDate, file_basename))
+                        # else:
+                        #     print('already updated {} {}'.format(match_data.theDate, file_basename))
                     else:
                         print('no match or many match {}'.format(file_basename))
 
             # break
 
+    def execute2(self):
+
+        for dir in self.dir_list:
+            file_list = glob.glob(os.path.join(dir, '*'))
+            print('{}'.format(len(file_list)))
+
+            for file in file_list:
+                file_basename = os.path.basename(file)
+
+                if not self.db.get_by_filename(file_basename):
+                    m_group = re.search('(AKB48|HKT48|SKE48|NGT48|STU48|NMB48)', file_basename)
+
+                    if m_group:
+                        # print(m_group.group())
+                        group_name = m_group.group()
+                        # グループ名と日付で一致するデータがDBにある場合はupdatableとして表示
+                        pass
+                    else:
+                        print('no match or many match {}'.format(file_basename))
+                        # ISOファイルの場合は出力のみ
+
+            break
+
 
 if __name__ == '__main__':
     akb48 = Akb48File()
-    akb48.execute()
+    # akb48.execute()
+    akb48.execute2()

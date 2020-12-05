@@ -28,6 +28,7 @@ class MovieCheck:
         self.re_time = '1[0-9][03]0'
 
         self.path = 'D:\DATA\Downloads\AKB48'
+        # self.path = 'M:\AKB48公演2020'
         rarfile.UNRAR_TOOL = r'C:\\myapp\\unrar'
         self.target_names = []
         try:
@@ -54,6 +55,21 @@ class MovieCheck:
                 pre_list.append(m_pre.group('date_str'))
                 break
 
+        if m_pre is None:
+            is_match = False
+            # for name in self.target_names:
+            #     if extract_name in name:
+            #         print('Match {}'.format(name))
+            find_filter = filter(lambda name: extract_name in name
+                                 , self.target_names)
+            find_list = list(find_filter)
+            if len(find_list) == 1:
+                m_pre = re.search(self.re_file_prefix_list[1], find_list[0])
+                if m_pre:
+                    pre_list.append(m_pre.group('group_name'))
+                    pre_list.append(m_pre.group('date_str'))
+                print('Match {}'.format(extract_name))
+
         is_not_find = True
         err_detail = ''
         if len(pre_list) > 0:
@@ -76,6 +92,7 @@ class MovieCheck:
                         err_detail = 'many time[{}] error'.format(m_time.group())
             else:
                 err_detail = 'no match file_prefix'
+
         else:
             err_detail = 'no match file_prefix'
 
@@ -86,8 +103,13 @@ class MovieCheck:
             else:
                 raise MatchNotFoundError("{} の中にグループ名が無し".format(extract_name))
 
+        if '、' in find_list[0]:
+            change_filename = '{} {}'.format(find_list[0].split('、')[0].strip(), extract_name.replace(pre_list[1], '').strip())
+        else:
+            change_filename = extract_name.replace(m_pre.group(), find_list[0])
+
         # print('change 【' + extract_name.replace(m_pre.group(), find_list[0]) + '】 <-- ' + mp4_filename)
-        return extract_name.replace(m_pre.group(), find_list[0])
+        return change_filename
 
     def execute(self):
         file_list = glob.glob(os.path.join(self.path, '*part1.rar'))

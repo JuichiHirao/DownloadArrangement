@@ -17,3 +17,5 @@ CREATE TABLE akb48 (
   updated_at TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 );
+
+select * from akb48 where the_date >= '2020-10-11' and the_date < '2020-10-12';
