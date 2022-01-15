@@ -51,7 +51,7 @@ class Akb48Schedule:
         schedule_date = {"month": "{:0>2}".format(month),
                          "year": str(year),
                          "category": "0"}
-        r = requests.post("https://www.akb48.co.jp/public/api/schedule/calendar/", schedule_date)
+        r = requests.post("https://www.akb48.co.jp/public/api/schedule/calendar/", data=schedule_date)
 
         data = r.json()
 
